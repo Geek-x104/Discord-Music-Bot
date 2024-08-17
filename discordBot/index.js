@@ -6,6 +6,7 @@ const queue = new Map();
 
 client.on('ready', () => {
   console.log('Music bot is online!');
+  client.user.setActivity('for your commands! Use "!play" to play music.', { type: ActivityType.Listening });
 });
 
 client.on('message', async message => {
@@ -68,4 +69,4 @@ async function playSong(connection, queue, message) {
   message.reply(`Now playing: **${song.title}**`);
 }
 
-client.login('YOUR_BOT_TOKEN_HERE');
+client.login(process.env.CLIENT_TOKEN);
