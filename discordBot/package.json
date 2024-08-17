@@ -1,0 +1,22 @@
+{
+  "name": "discord-music-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Geek-x104/Discord-Music-Bot.git"
+  },
+  "author": "geek-x",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Geek-x104/Discord-Music-Bot/issues"
+  },
+  "homepage": "https://github.com/Geek-x104/Discord-Music-Bot#readme",
+  "description": "",
+  "dependencies": {
+    "discord.js": "^14.15.3"
+  }
+}
