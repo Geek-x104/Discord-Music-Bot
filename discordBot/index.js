@@ -1,72 +1,56 @@
-const Discord = require('discord.js');
-const ytdl = require('ytdl-core');
-const client = new Discord.Client();
+require('dotenv').config(); // initializes dotenv
+const { Client, GatewayIntentBits } = require('discord.js');
 
-const queue = new Map();
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
 
-client.on('ready', () => {
-  console.log('Music bot is online!');
-  client.user.setActivity('for your commands! Use "!play" to play music.', { type: ActivityType.Listening });
-});
+const pingCommand = {
+  name: 'ping',
+  description: 'Check if the bot is working properly',
+  execute(interaction) {
+    interaction.reply('pong!');
+  },
+};
 
-client.on('message', async message => {
-  if (!message.guild) return;
-  if (message.author.bot) return;
+const joinCommand = {
+  name: 'join',
+  description: 'Join a voice channel',
+  execute(interaction) {
+    const voiceChannel = interaction.member.voice.channel;
+    if (!voiceChannel) {
+      interaction.reply('You need to be in a voice channel to use this command!');
+      return;
+    }
 
-  const args = message.content.split(' ');
-  const command = args.shift().toLowerCase();
-
-  if (command === '!play') {
-    const songUrl = args[0];
-    if (!songUrl) return message.reply('Please provide a YouTube URL or song title!');
-
-    const voiceChannel = message.member.voice.channel;
-    if (!voiceChannel) return message.reply('You need to be in a voice channel to play music!');
-
-    const songInfo = await ytdl.getInfo(songUrl);
-    const song = {
-      title: songInfo.title,
-      url: songUrl,
-    };
-
-    if (!queue.has(message.guild.id)) queue.set(message.guild.id, []);
-    queue.get(message.guild.id).push(song);
-
-    try {
-      const connection = await voiceChannel.join();
-      playSong(connection, queue, message);
-    } catch (error) {
+    voiceChannel.join().then(() => {
+      interaction.reply(`Joined ${voiceChannel.name}!`);
+    }).catch((error) => {
       console.error(error);
-      message.reply('Error joining voice channel!');
-    }
-  } else if (command === '!skip') {
-    if (!queue.has(message.guild.id)) return message.reply('No songs in queue!');
-    const connection = voiceChannel.connection;
-    connection.dispatcher.destroy();
-  } else if (command === '!queue') {
-    if (!queue.has(message.guild.id)) return message.reply('No songs in queue!');
-    const songs = queue.get(message.guild.id);
-    let queueMessage = '';
-    for (let i = 0; i < songs.length; i++) {
-      queueMessage += `${i + 1}. ${songs[i].title}\n`;
-    }
-    message.reply(queueMessage);
-  }
+      interaction.reply('Error joining voice channel!');
+    });
+  },
+};
+
+client.once('ready', async () => {
+  console.log('Ready!');
 });
 
-async function playSong(connection, queue, message) {
-  const song = queue.get(message.guild.id).shift();
-  if (!song) {
-    connection.disconnect();
-    return;
+client.on('interactionCreate', async interaction => {
+  const guildId = interaction.guild.id; // Declare guildId here
+
+  if (!interaction.isCommand()) return;
+
+  if (interaction.commandName === pingCommand.name) {
+    pingCommand.execute(interaction);
+  } else if (interaction.commandName === joinCommand.name) {
+    joinCommand.execute(interaction);
   }
 
-  const dispatcher = connection.play(ytdl(song.url, { filter: 'audioonly' }));
-  dispatcher.on('finish', () => {
-    playSong(connection, queue, message);
-  });
+  // Register commands for the guild
+  const commands = [pingCommand, joinCommand];
+  await client.application.commands.set(commands, guildId);
+  console.log(`Commands registered for guild ${guildId}!`);
+});
 
-  message.reply(`Now playing: **${song.title}**`);
-}
+client.commands = [pingCommand, joinCommand];
 
-client.login(process.env.CLIENT_TOKEN);
+client.login(process.env.CLIENT_TOKEN); // signs the bot in with token

@@ -17,6 +17,9 @@
   "homepage": "https://github.com/Geek-x104/Discord-Music-Bot#readme",
   "description": "",
   "dependencies": {
-    "discord.js": "^14.15.3"
+    "discord-player": "^6.7.1",
+    "discord.js": "^14.15.3",
+    "dotenv": "^16.4.5",
+    "ytdl-core": "^4.11.5"
   }
 }
